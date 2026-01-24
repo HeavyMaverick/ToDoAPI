@@ -1,7 +1,6 @@
 package handler
 
 import (
-	"encoding/json"
 	"log"
 	"net/http"
 	"time"
@@ -31,11 +30,11 @@ func CreateTask(ctx *gin.Context) {
 	var task model.Task
 	if err := ctx.ShouldBindJSON(&task); err != nil {
 		ctx.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
+		return
 	}
-	if err := json.NewDecoder(ctx.Request.Body).Decode(&task); err != nil {
+	if err := taskService.CreateTask(&task); err != nil {
 		ctx.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
 	}
-	taskService.CreateTask(&model.Task{})
 	log.Println("Task created")
-	ctx.JSON(http.StatusCreated, gin.H{"status": "201 - created"})
+	ctx.JSON(http.StatusCreated, task)
 }
