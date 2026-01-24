@@ -7,9 +7,12 @@ import (
 	"time"
 
 	"ToDoApi/internal/model"
+	"ToDoApi/internal/service"
 
 	"github.com/gin-gonic/gin"
 )
+
+var taskService service.TaskService
 
 func GetTasks(ctx *gin.Context) {
 	var tasks []model.Task = []model.Task{}
@@ -31,7 +34,7 @@ func CreateTask(ctx *gin.Context) {
 	if err := json.NewDecoder(ctx.Request.Body).Decode(&task); err != nil {
 		ctx.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
 	}
-	// addTask(task)
+	// taskService.CreateTask(&model.Task{})
 	log.Println("Task created")
 	ctx.JSON(http.StatusCreated, gin.H{"status": "201 - created"})
 }
