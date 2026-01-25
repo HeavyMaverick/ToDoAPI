@@ -14,7 +14,7 @@ var (
 type TaskRepository interface {
 	GetAll() ([]model.Task, error)
 	GetById(id int) (*model.Task, error)
-	Create(model.Task) error
+	Create(task *model.Task) error
 	Update(id int, task *model.Task) error
 	Delete(id int) error
 }
@@ -43,19 +43,30 @@ func (r *InMemoryTaskRepository) GetById(id int) (*model.Task, error) {
 			return &task, nil
 		}
 	}
-	return &model.Task{}, ErrNotFound
+	return nil, ErrNotFound
 }
 
-func (r *InMemoryTaskRepository) Create(task model.Task) error {
+func (r *InMemoryTaskRepository) Create(task *model.Task) error {
 	r.mu.Lock()
 	defer r.mu.Unlock()
 	r.nextId++
 	task.ID = r.nextId
 	task.CreatedAt = time.Now()
-	r.tasks = append(r.tasks, task)
+	r.tasks = append(r.tasks, *task)
 	return nil
 }
-func (r *InMemoryTaskRepository) Update(id int, diffTask model.Task) error {
+func (r *InMemoryTaskRepository) Update(id int, updatedTask *model.Task) error {
+	r.mu.Lock()
+	defer r.mu.Unlock()
+
+	for i, task := range r.tasks {
+		if task.ID == id {
+			updatedTask.CreatedAt = task.CreatedAt
+			updatedTask.ID = id
+			r.tasks[i] = *updatedTask
+			return nil
+		}
+	}
 	return ErrNotFound
 }
 

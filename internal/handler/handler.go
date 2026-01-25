@@ -3,7 +3,6 @@ package handler
 import (
 	"log"
 	"net/http"
-	"time"
 
 	"ToDoApi/internal/model"
 	"ToDoApi/internal/service"
@@ -14,15 +13,12 @@ import (
 var taskService service.TaskService
 
 func GetTasks(ctx *gin.Context) {
-	var tasks []model.Task = []model.Task{}
-	// remove
-	tasks = append(tasks, model.Task{
-		ID:          1,
-		Title:       "Sample Title",
-		Description: "Sample Desc",
-		Completed:   false,
-		CreatedAt:   time.Now(),
-	})
+	tasks, err := taskService.GetAllTasks()
+	if err != nil {
+		log.Println("Error", err)
+		ctx.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
+		return
+	}
 	ctx.JSON(http.StatusOK, tasks)
 }
 
@@ -34,7 +30,11 @@ func CreateTask(ctx *gin.Context) {
 	}
 	if err := taskService.CreateTask(&task); err != nil {
 		ctx.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
+		return
 	}
-	log.Println("Task created")
 	ctx.JSON(http.StatusCreated, task)
+}
+
+func SetTaskService(ts service.TaskService) {
+	taskService = ts
 }

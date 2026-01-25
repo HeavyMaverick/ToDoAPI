@@ -5,12 +5,18 @@ import (
 	"net/http"
 
 	h "ToDoApi/internal/handler"
+	"ToDoApi/internal/repository"
+	"ToDoApi/internal/service"
 
 	"github.com/gin-gonic/gin"
 )
 
 func main() {
 	r := gin.Default()
+
+	rep := repository.NewInMemoryTaskRepository()
+	taskService := service.NewTaskService(rep)
+	h.SetTaskService(taskService)
 
 	r.GET("/health", func(ctx *gin.Context) {
 		ctx.JSON(http.StatusOK, gin.H{"status": "ok"})
@@ -40,6 +46,10 @@ func main() {
 		v1 := r.Group("/api/v1")
 		v1.GET("/tasks", h.GetTasks)
 		v1.POST("/tasks", h.CreateTask)
+		// v1.GET("/tasks/:id", h.GetTask)
+		// v1.PUT("/tasks/:id", h.UpdateTask)
+		// v1.DELETE("/tasks/:id", h.DeleteTask)
+
 	}
 
 	log.Println("Server starting on :8080")

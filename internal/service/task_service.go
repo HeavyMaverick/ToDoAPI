@@ -22,7 +22,7 @@ func (s *taskService) CreateTask(task *model.Task) error {
 	if task.Title == "" {
 		return errors.New("Error: empty title. Can't be empty")
 	}
-	return s.rep.Create(*task)
+	return s.rep.Create(task)
 }
 
 func (s *taskService) GetAllTasks() ([]model.Task, error) {
@@ -37,8 +37,8 @@ func (s *taskService) GetTask(id int) (*model.Task, error) {
 	return s.rep.GetById(id)
 }
 
-func (s *taskService) UpdateTask(id int, model *model.Task) error {
-	return s.rep.Update(id, model)
+func (s *taskService) UpdateTask(id int, task *model.Task) error {
+	return s.rep.Update(id, task)
 }
 
 func NewTaskService(repo repository.TaskRepository) TaskService {
