@@ -77,14 +77,16 @@ func UpdateTask(ctx *gin.Context) {
 		return
 	}
 	var task model.Task
-	err = ctx.ShouldBindJSON(&task)
-	if err != nil {
+	if err := ctx.ShouldBindJSON(&task); err != nil {
 		ctx.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
 		return
 	}
-	err = taskService.UpdateTask(id, &task)
-	if err != nil {
-		ctx.JSON(http.StatusNotFound, gin.H{"error": ErrNotFound})
+	if err := taskService.UpdateTask(id, &task); err != nil {
+		if err == service.ErrEmptyTitle || err == service.ErrTitleTooLong {
+			ctx.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
+		} else {
+			ctx.JSON(http.StatusNotFound, gin.H{"error": ErrNotFound})
+		}
 		return
 	}
 	ctx.JSON(http.StatusOK, task)
