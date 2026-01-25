@@ -38,9 +38,9 @@ func (r *InMemoryTaskRepository) GetAll() ([]model.Task, error) {
 func (r *InMemoryTaskRepository) GetById(id int) (*model.Task, error) {
 	r.mu.RLock()
 	defer r.mu.RUnlock()
-	for _, task := range r.tasks {
-		if task.ID == id {
-			return &task, nil
+	for i := range r.tasks {
+		if r.tasks[i].ID == id {
+			return &r.tasks[i], nil
 		}
 	}
 	return nil, ErrNotFound

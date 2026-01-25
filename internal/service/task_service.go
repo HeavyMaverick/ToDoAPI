@@ -14,13 +14,21 @@ type TaskService interface {
 	DeleteTask(id int) error
 }
 
+var (
+	ErrEmptyTitle   = errors.New("Title cannot be empty")
+	ErrTitleTooLong = errors.New("Title too long (max 100 chars)")
+)
+
 type taskService struct {
 	rep repository.TaskRepository
 }
 
 func (s *taskService) CreateTask(task *model.Task) error {
 	if task.Title == "" {
-		return errors.New("Error: empty title. Can't be empty")
+		return ErrEmptyTitle
+	}
+	if len(task.Title) > 100 {
+		return ErrTitleTooLong
 	}
 	return s.rep.Create(task)
 }
@@ -38,6 +46,12 @@ func (s *taskService) GetTask(id int) (*model.Task, error) {
 }
 
 func (s *taskService) UpdateTask(id int, task *model.Task) error {
+	if task.Title == "" {
+		return ErrEmptyTitle
+	}
+	if len(task.Title) > 100 {
+		return ErrTitleTooLong
+	}
 	return s.rep.Update(id, task)
 }
 
