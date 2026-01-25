@@ -46,9 +46,9 @@ func main() {
 		v1 := r.Group("/api/v1")
 		v1.GET("/tasks", h.GetTasks)
 		v1.POST("/tasks", h.CreateTask)
-		// v1.GET("/tasks/:id", h.GetTask)
-		// v1.PUT("/tasks/:id", h.UpdateTask)
-		// v1.DELETE("/tasks/:id", h.DeleteTask)
+		v1.GET("/tasks/:id", h.GetTask)
+		v1.PUT("/tasks/:id", h.UpdateTask)
+		v1.DELETE("/tasks/:id", h.DeleteTask)
 
 	}
 
