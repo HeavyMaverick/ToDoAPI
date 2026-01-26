@@ -36,18 +36,26 @@ func (r *PostgresTaskRepository) Create(task *model.Task) error {
 }
 
 func (r *PostgresTaskRepository) Update(id int, task *model.Task) error {
-	result := r.db.Model(&model.Task{}).Where("id=?", id).Updates(map[string]interface{}{
+	var existingTask model.Task
+	if err := r.db.First(&existingTask, id).Error; err != nil {
+		if errors.Is(err, gorm.ErrRecordNotFound) {
+			return ErrNotFound
+		}
+		return err
+	}
+	updates := map[string]interface{}{
 		"title":       task.Title,
 		"description": task.Description,
 		"completed":   task.Completed,
-	})
-	if result.RowsAffected == 0 {
-		return ErrNotFound
+	}
+	result := r.db.Model(&model.Task{}).Where("id = ?", id).Updates(updates)
+	if result.Error != nil {
+		return result.Error
 	}
 	if err := r.db.First(task, id).Error; err != nil {
 		return err
 	}
-	return result.Error
+	return nil
 }
 
 func (r *PostgresTaskRepository) Delete(id int) error {
