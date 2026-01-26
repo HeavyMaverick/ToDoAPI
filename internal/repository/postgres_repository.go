@@ -44,11 +44,14 @@ func (r *PostgresTaskRepository) Update(id int, task *model.Task) error {
 	if result.RowsAffected == 0 {
 		return ErrNotFound
 	}
+	if err := r.db.First(task, id).Error; err != nil {
+		return err
+	}
 	return result.Error
 }
 
 func (r *PostgresTaskRepository) Delete(id int) error {
-	result := r.db.Delete(&model.Task{}, "id")
+	result := r.db.Where("id=?", id).Delete(&model.Task{})
 	if result.RowsAffected == 0 {
 		return ErrNotFound
 	}
