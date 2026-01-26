@@ -15,7 +15,7 @@ import (
 
 func main() {
 	log.Println("Trying to load config")
-	cfg, err := config.LoadConfig(".")
+	cfg, err := config.LoadConfig("../..")
 	if err != nil {
 		log.Fatal("Error loading config:", err)
 	}
