@@ -21,7 +21,7 @@ func main() {
 	}
 	log.Printf("Config loaded: DB=%s:%s", cfg.DBHost, cfg.DBPort)
 
-	log.Println("Trying to connect to db")
+	log.Println("Trying connect to db")
 	db, err := database.ConnectDB(&cfg)
 	if err != nil {
 		log.Fatal("Error connecting database", err)
@@ -35,31 +35,32 @@ func main() {
 	}
 	log.Println("Migration completed")
 
-	rep := repository.NewInMemoryTaskRepository()
+	rep := repository.NewPostgresTaskRepository(db)
+	// rep := repository.NewInMemoryTaskRepository()
 	taskService := service.NewTaskService(rep)
 	h.SetTaskService(taskService)
 
 	r := gin.Default()
+	r.Use(gin.Logger())
+	r.Use(gin.Recovery())
 
 	r.GET("/health", func(ctx *gin.Context) {
 		ctx.JSON(http.StatusOK, gin.H{"status": "ok"})
 	})
 
 	r.GET("/", func(ctx *gin.Context) {
-		endpoints := map[string]string{
-			"health":      "GET  /health",
-			"get_tasks":   "GET  /api/v1/tasks",
-			"get_task":    "GET  /api/v1/tasks/:id",
-			"create_task": "POST /api/v1/tasks",
-			"update_task": "PUT  /api/v1/tasks/:id",
-			"delete_task": "DELETE /api/v1/tasks/:id",
-		}
-
 		ctx.JSON(http.StatusOK, gin.H{
-			"service":   "ToDo API",
-			"version":   "1.0",
-			"endpoints": endpoints,
-			"docs":      "http://" + ctx.Request.Host + "/",
+			"service": "ToDo API",
+			"version": "1.0.0",
+			"docs":    "https://github.com/heavymaverick/ToDoApi",
+			"endpoints": []string{
+				"GET    /health",
+				"GET    /api/v1/tasks",
+				"GET    /api/v1/tasks/:id",
+				"POST   /api/v1/tasks",
+				"PUT    /api/v1/tasks/:id",
+				"DELETE /api/v1/tasks/:id",
+			},
 		})
 	})
 
@@ -75,5 +76,7 @@ func main() {
 
 	log.Println("Server starting on :8080")
 	log.Println("📄 Documentation: http://localhost:8080")
-	log.Fatal(r.Run(":8080"))
+	if err := r.Run(":" + cfg.ServerPort); err != nil {
+		log.Fatal("Server starting error", err)
+	}
 }
