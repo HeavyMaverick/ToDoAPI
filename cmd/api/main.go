@@ -4,6 +4,8 @@ import (
 	"log"
 	"net/http"
 
+	"ToDoApi/internal/config"
+	"ToDoApi/internal/database"
 	h "ToDoApi/internal/handler"
 	"ToDoApi/internal/repository"
 	"ToDoApi/internal/service"
@@ -12,11 +14,24 @@ import (
 )
 
 func main() {
-	r := gin.Default()
+	cfg, err := config.LoadConfig(".")
+	if err != nil {
+		log.Panicln("Error loading config:", err)
+	}
+	db, err := database.ConnectDB(&cfg)
+	if err != nil {
+		log.Panicln("Error connecting database", err)
+	}
+	err = database.AutoMigrate(db)
+	if err != nil {
+		log.Println("Migration failed:", err)
+	}
 
 	rep := repository.NewInMemoryTaskRepository()
 	taskService := service.NewTaskService(rep)
 	h.SetTaskService(taskService)
+
+	r := gin.Default()
 
 	r.GET("/health", func(ctx *gin.Context) {
 		ctx.JSON(http.StatusOK, gin.H{"status": "ok"})
