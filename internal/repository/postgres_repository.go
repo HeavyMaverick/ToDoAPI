@@ -2,6 +2,7 @@ package repository
 
 import (
 	"ToDoApi/internal/model"
+	"errors"
 
 	"gorm.io/gorm"
 )
@@ -16,10 +17,40 @@ func NewPostgresTaskRepository(db *gorm.DB) *PostgresTaskRepository {
 
 func (r *PostgresTaskRepository) GetAll() ([]model.Task, error) {
 	var tasks []model.Task
-	result := r.db.Find(&tasks)
+	result := r.db.Order("id").Find(&tasks)
 	return tasks, result.Error
 }
-func (r *PostgresTaskRepository) GetById(id int) (*model.Task, error)
-func (r *PostgresTaskRepository) Create(task *model.Task) error
-func (r *PostgresTaskRepository) Update(id int, task *model.Task) error
-func (r *PostgresTaskRepository) Delete(id int) error
+
+func (r *PostgresTaskRepository) GetById(id int) (*model.Task, error) {
+	var task model.Task
+	result := r.db.First(&task, id)
+	if errors.Is(result.Error, gorm.ErrRecordNotFound) {
+		return nil, ErrNotFound
+	}
+	return &task, result.Error
+}
+
+func (r *PostgresTaskRepository) Create(task *model.Task) error {
+	result := r.db.Create(task)
+	return result.Error
+}
+
+func (r *PostgresTaskRepository) Update(id int, task *model.Task) error {
+	result := r.db.Model(&model.Task{}).Where("id=?", id).Updates(map[string]interface{}{
+		"title":       task.Title,
+		"description": task.Description,
+		"completed":   task.Completed,
+	})
+	if result.RowsAffected == 0 {
+		return ErrNotFound
+	}
+	return result.Error
+}
+
+func (r *PostgresTaskRepository) Delete(id int) error {
+	result := r.db.Delete(&model.Task{}, "id")
+	if result.RowsAffected == 0 {
+		return ErrNotFound
+	}
+	return result.Error
+}

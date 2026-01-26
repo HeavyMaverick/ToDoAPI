@@ -14,18 +14,26 @@ import (
 )
 
 func main() {
+	log.Println("Trying to load config")
 	cfg, err := config.LoadConfig(".")
 	if err != nil {
-		log.Panicln("Error loading config:", err)
+		log.Fatal("Error loading config:", err)
 	}
+	log.Printf("Config loaded: DB=%s:%s", cfg.DBHost, cfg.DBPort)
+
+	log.Println("Trying to connect to db")
 	db, err := database.ConnectDB(&cfg)
 	if err != nil {
-		log.Panicln("Error connecting database", err)
+		log.Fatal("Error connecting database", err)
 	}
+	log.Println("DB connected")
+
+	log.Println("Trying to migrate db")
 	err = database.AutoMigrate(db)
 	if err != nil {
-		log.Println("Migration failed:", err)
+		log.Fatal("Migration failed:", err)
 	}
+	log.Println("Migration completed")
 
 	rep := repository.NewInMemoryTaskRepository()
 	taskService := service.NewTaskService(rep)
