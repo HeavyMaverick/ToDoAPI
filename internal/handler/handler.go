@@ -1,7 +1,6 @@
 package handler
 
 import (
-	"errors"
 	"net/http"
 	"strconv"
 
@@ -12,10 +11,11 @@ import (
 )
 
 var taskService service.TaskService
-var (
-	ErrInvalidId = errors.New("Invalid task ID")
-	ErrNotFound  = errors.New("Task not found")
-)
+
+// var (
+// 	ErrInvalidId = errors.New("Invalid task ID").Error()
+// 	ErrNotFound  = errors.New("Task not found").Error()
+// )
 
 func GetTasks(ctx *gin.Context) {
 	tasks, err := taskService.GetAllTasks()
@@ -43,12 +43,14 @@ func GetTask(ctx *gin.Context) {
 	param, _ := ctx.Params.Get("id")
 	id, err := strconv.Atoi(param)
 	if err != nil {
-		ctx.JSON(http.StatusBadRequest, gin.H{"error": ErrInvalidId})
+		// ctx.JSON(http.StatusBadRequest, gin.H{"error": ErrInvalidId})
+		ctx.JSON(http.StatusBadRequest, gin.H{"error": "Invalid task ID"})
 		return
 	}
 	task, err := taskService.GetTask(id)
 	if err != nil {
-		ctx.JSON(http.StatusNotFound, gin.H{"error": ErrNotFound})
+		// ctx.JSON(http.StatusNotFound, gin.H{"error": ErrNotFound})
+		ctx.JSON(http.StatusNotFound, gin.H{"error": "Task not found"})
 		return
 	}
 	ctx.JSON(http.StatusOK, task)
@@ -58,12 +60,14 @@ func DeleteTask(ctx *gin.Context) {
 	param, _ := ctx.Params.Get("id")
 	id, err := strconv.Atoi(param)
 	if err != nil {
-		ctx.JSON(http.StatusBadRequest, gin.H{"error": ErrInvalidId})
+		// ctx.JSON(http.StatusBadRequest, gin.H{"error": ErrInvalidId})
+		ctx.JSON(http.StatusBadRequest, gin.H{"error": "Invalid task ID"})
 		return
 	}
 	err = taskService.DeleteTask(id)
 	if err != nil {
-		ctx.JSON(http.StatusNotFound, gin.H{"error": ErrNotFound})
+		// ctx.JSON(http.StatusNotFound, gin.H{"error 1": ErrNotFound})
+		ctx.JSON(http.StatusNotFound, gin.H{"error 1": "Task not found"})
 		return
 	}
 	ctx.JSON(http.StatusOK, gin.H{"message": "Task deleted successfully"})
@@ -73,7 +77,8 @@ func UpdateTask(ctx *gin.Context) {
 	param, _ := ctx.Params.Get("id")
 	id, err := strconv.Atoi(param)
 	if err != nil {
-		ctx.JSON(http.StatusBadRequest, gin.H{"error": ErrInvalidId})
+		// ctx.JSON(http.StatusBadRequest, gin.H{"error": ErrInvalidId})
+		ctx.JSON(http.StatusBadRequest, gin.H{"error": "Invalid task ID"})
 		return
 	}
 	var task model.Task
@@ -85,7 +90,8 @@ func UpdateTask(ctx *gin.Context) {
 		if err == service.ErrEmptyTitle || err == service.ErrTitleTooLong {
 			ctx.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
 		} else {
-			ctx.JSON(http.StatusNotFound, gin.H{"error": ErrNotFound})
+			// ctx.JSON(http.StatusNotFound, gin.H{"error": ErrNotFound})
+			ctx.JSON(http.StatusNotFound, gin.H{"error": "Task not found"})
 		}
 		return
 	}
