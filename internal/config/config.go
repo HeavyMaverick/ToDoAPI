@@ -1,10 +1,6 @@
 package config
 
-import (
-	"log"
-
-	"github.com/spf13/viper"
-)
+import "os"
 
 type Config struct {
 	DBHost     string `mapstructure:"DB_HOST"`
@@ -15,21 +11,43 @@ type Config struct {
 	ServerPort string `mapstructure:"SERVER_PORT"`
 }
 
-func LoadConfig(path string) (config Config, err error) {
-	viper.AddConfigPath(path)
-	viper.SetConfigName(".env")
-	viper.SetConfigType("env")
-	viper.AutomaticEnv()
+// Docker не находит файл .env, viper пока отключен,
 
-	err = viper.ReadInConfig()
-	if err != nil {
-		log.Println("Error ReadInConfig:", err)
-		return
+// func LoadConfig(path string) (config Config, err error) {
+// 	// viper.AddConfigPath(path)
+// 	// viper.SetConfigName(".env")
+// 	// viper.SetConfigType("env")
+// 	// viper.AutomaticEnv()
+// 	viper.SetConfigFile(".env")
+// 	viper.AutomaticEnv()
+
+// 	err = viper.ReadInConfig()
+// 	if err != nil {
+// 		log.Println("Error ReadInConfig:", err)
+// 		return
+// 	}
+// 	err = viper.Unmarshal(&config)
+// 	if err != nil {
+// 		log.Println("Error unmarshaling config:", err)
+// 		return
+// 	}
+// 	return
+// }
+
+func LoadConfig() Config {
+	return Config{
+		DBHost:     getEnv("DB_HOST", "db"),
+		DBPort:     getEnv("DB_PORT", "5432"),
+		DBUser:     getEnv("DB_USER", "postgres"),
+		DBPassword: getEnv("DB_PASSWORD", "root"),
+		DBName:     getEnv("DB_NAME", "todoDB"),
+		ServerPort: getEnv("SERVER_PORT", "8080"),
 	}
-	err = viper.Unmarshal(&config)
-	if err != nil {
-		log.Println("Error unmarshaling config:", err)
-		return
+}
+
+func getEnv(key, defaultValue string) string {
+	if value, exists := os.LookupEnv(key); exists {
+		return value
 	}
-	return
+	return defaultValue
 }

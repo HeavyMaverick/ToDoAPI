@@ -14,12 +14,14 @@ import (
 )
 
 func main() {
-	log.Println("Trying to load config")
-	cfg, err := config.LoadConfig(".")
-	// cfg, err := config.LoadConfig("../..")
-	if err != nil {
-		log.Fatal("Error loading config:", err)
-	}
+	// log.Println("Trying to load config")
+	// cfg, err := config.LoadConfig(".")
+	// // cfg, err := config.LoadConfig("../..")
+	// if err != nil {
+	// 	log.Fatal("Error loading config:", err)
+	// }
+	log.Println("Loading configuration from environment variables")
+	cfg := config.LoadConfig()
 	log.Printf("Config loaded: DB=%s:%s", cfg.DBHost, cfg.DBPort)
 
 	log.Println("Trying connect to db")
@@ -72,7 +74,6 @@ func main() {
 		v1.POST("/tasks", h.CreateTask)
 		v1.PUT("/tasks/:id", h.UpdateTask)
 		v1.DELETE("/tasks/:id", h.DeleteTask)
-
 	}
 
 	log.Println("Server starting on :8080")
