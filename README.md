@@ -24,23 +24,23 @@
 ```
 ToDoApi/
 ├── cmd/
-│ └── api/
-│ └── main.go # Точка входа
+│   └── api/
+│       └── main.go                    # Точка входа
 ├── internal/
-│ ├── config/ # Конфигурация приложения
-│ │ └── config.go
-│ ├── database/ # Работа с базой данных
-│ │ └── database.go
-│ ├── handler/ # HTTP-обработчики (контроллеры)
-│ │ └── handler.go
-│ ├── model/ # Модели данных
-│ │ └── task.go
-│ ├── repository/ # Слой доступа к данным
-│ │ ├── task_repository.go # Интерфейсы и in-memory реализация
-│ │ └── postgres_repository.go # PostgreSQL реализация
-│ └── service/ # Бизнес-логика
-│ └──task_service.go
-├── .env.example # Пример конфигурации
+│   ├── config/                        # Конфигурация приложения
+│   │   └── config.go
+│   ├── database/                      # Работа с базой данных
+│   │   └── database.go
+│   ├── handler/                       # HTTP-обработчики (контроллеры)
+│   │   └── handler.go
+│   ├── model/                         # Модели данных
+│   │   └── task.go
+│   ├── repository/                    # Слой доступа к данным
+│   │   ├── task_repository.go         # Интерфейсы и in-memory реализация
+│   │   └── postgres_repository.go     # Postgres реализация
+│   └── service/                       # Бизнес-логика (сервисный слой)
+│       └── task_service.go            # Сервис для работы с задачами
+├── .env
 ├── .gitignore
 ├── go.mod
 ├── go.sum
