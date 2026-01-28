@@ -1,0 +1,42 @@
+{{template "base" .}}
+
+{{define "header"}}
+<header>
+    <h1><i class="fas fa-tasks"></i> ToDo API</h1>
+    <nav>
+        <a href="/">Home</a>
+        <a href="/testpage">Test Page</a>
+        <a href="/api/v1/tasks">API</a>
+    </nav>
+</header>
+{{end}}
+
+{{define "main"}}
+<section class="welcome-section">
+    <h2>Welcome to ToDo API</h2>
+    <p>Version: {{.version}}</p>
+    
+    <div class="api-info">
+        <h3>Available Endpoints:</h3>
+        <ul>
+            <li><strong>GET</strong> /health - Health check</li>
+            <li><strong>GET</strong> /api/v1/tasks - Get all tasks</li>
+            <li><strong>GET</strong> /api/v1/tasks/:id - Get task by ID</li>
+            <li><strong>POST</strong> /api/v1/tasks - Create new task</li>
+            <li><strong>PUT</strong> /api/v1/tasks/:id - Update task</li>
+            <li><strong>DELETE</strong> /api/v1/tasks/:id - Delete task</li>
+        </ul>
+    </div>
+    
+    <div class="quick-actions">
+        <a href="/testpage" class="btn">View Test Page</a>
+        <a href="/api/v1/tasks" class="btn">View API Data</a>
+    </div>
+</section>
+{{end}}
+
+{{define "footer"}}
+<footer>
+    <p>ToDo API v{{.version}} &copy; 2024</p>
+</footer>
+{{end}}

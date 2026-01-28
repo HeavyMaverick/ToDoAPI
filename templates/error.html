@@ -1,0 +1,29 @@
+{{template "base" .}}
+
+{{define "header"}}
+<header>
+    <h1><i class="fas fa-exclamation-triangle"></i> Error</h1>
+    <nav>
+        <a href="/">Home</a>
+        <a href="/testpage">Test Page</a>
+        <a href="/api/v1/tasks">API</a>
+    </nav>
+</header>
+{{end}}
+
+{{define "main"}}
+<section class="error-section">
+    <div class="error-content">
+        <i class="fas fa-exclamation-circle error-icon"></i>
+        <h2>An Error Occurred</h2>
+        <p class="error-message">{{.error}}</p>
+        <a href="/" class="btn">Go Back Home</a>
+    </div>
+</section>
+{{end}}
+
+{{define "footer"}}
+<footer>
+    <p>ToDo API &copy; 2024</p>
+</footer>
+{{end}}

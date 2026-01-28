@@ -105,7 +105,15 @@ func UpdateTask(ctx *gin.Context) {
 func TestpageGET(ctx *gin.Context) {
 	tasks, err := taskService.GetAllTasks()
 	if err != nil {
-		ctx.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
+		ctx.HTML(http.StatusInternalServerError,
+			"error.html",
+			gin.H{"error": err.Error()})
+		return
 	}
-	ctx.HTML(http.StatusOK, "testpage.tmpl", gin.H{"allTasks": tasks})
+	ctx.HTML(http.StatusOK,
+		"testpage.html",
+		gin.H{
+			"title":    "Test page",
+			"allTasks": tasks,
+		})
 }

@@ -3,6 +3,8 @@ package main
 import (
 	"log"
 	"net/http"
+	"os"
+	"path/filepath"
 
 	"ToDoApi/internal/config"
 	"ToDoApi/internal/database"
@@ -35,12 +37,12 @@ func main() {
 	log.Println("DB connected")
 
 	//Мигрируем
-	log.Println("Trying to migrate db")
-	err = database.AutoMigrate(db)
-	if err != nil {
-		log.Fatal("Migration failed:", err)
-	}
-	log.Println("Migration completed")
+	// log.Println("Trying to migrate db")
+	// err = database.AutoMigrate(db)
+	// if err != nil {
+	// 	log.Fatal("Migration failed:", err)
+	// }
+	// log.Println("Migration completed")
 
 	rep := repository.NewPostgresTaskRepository(db)
 	// для хранения в памяти
@@ -52,27 +54,68 @@ func main() {
 	r.Use(gin.Logger())
 	r.Use(gin.Recovery())
 
-	//подгружаем html/css
-	r.LoadHTMLGlob("/")
-	r.Static("/static", "./")
+	// Получаем абсолютный путь к корню проекта
+	// Определяем путь к папке templates относительно main.go
+	execPath, err := os.Getwd()
+	if err != nil {
+		log.Fatal("Failed to get current directory:", err)
+	}
+
+	// Для cmd/api/main.go, templates находятся в ../../templates
+	templatesPath := filepath.Join(execPath, "../../templates")
+	staticPath := filepath.Join(execPath, "../../static")
+
+	// Посмотреть откуда подтягивает файлы
+	log.Printf("Looking for templates in: %s", templatesPath)
+	log.Printf("Looking for static files in: %s", staticPath)
+
+	// Проверяем существование папок
+	if _, err := os.Stat(templatesPath); os.IsNotExist(err) {
+		log.Printf("Templates folder not found at %s", templatesPath)
+		templatesPath = filepath.Join(execPath, "templates")
+		if err := os.MkdirAll(templatesPath, 0755); err != nil {
+			log.Printf("Failed to create templates directory: %v", err)
+		}
+	}
+
+	if _, err := os.Stat(staticPath); os.IsNotExist(err) {
+		log.Printf("Static folder not found at %s", staticPath)
+		staticPath = filepath.Join(execPath, "static")
+		if err := os.MkdirAll(staticPath, 0755); err != nil {
+			log.Printf("Failed to create static directory: %v", err)
+		}
+	}
+
+	// Подгружаем HTML шаблоны
+	r.LoadHTMLGlob(filepath.Join(templatesPath, "*.html"))
+	// Настраиваем статические файлы
+	r.Static("/static", staticPath)
+	r.StaticFile("/favicon.ico", filepath.Join(staticPath, "favicon.ico"))
 
 	r.GET("/health", func(ctx *gin.Context) {
 		ctx.JSON(http.StatusOK, gin.H{"status": "ok"})
 	})
 
+	// r.GET("/", func(ctx *gin.Context) {
+	// 	ctx.JSON(http.StatusOK, gin.H{
+	// 		"service": "ToDo API",
+	// 		"version": "1.0.0",
+	// 		"docs":    "https://github.com/heavymaverick/ToDoApi",
+	// 		"endpoints": []string{
+	// 			"GET    /health",
+	// 			"GET    /api/v1/tasks",
+	// 			"GET    /api/v1/tasks/:id",
+	// 			"POST   /api/v1/tasks",
+	// 			"PUT    /api/v1/tasks/:id",
+	// 			"DELETE /api/v1/tasks/:id",
+	// 		},
+	// 	})
+	// })
+
 	r.GET("/", func(ctx *gin.Context) {
-		ctx.JSON(http.StatusOK, gin.H{
-			"service": "ToDo API",
+		ctx.HTML(http.StatusOK, "index.html", gin.H{
+			"title":   "ToDoApi",
 			"version": "1.0.0",
-			"docs":    "https://github.com/heavymaverick/ToDoApi",
-			"endpoints": []string{
-				"GET    /health",
-				"GET    /api/v1/tasks",
-				"GET    /api/v1/tasks/:id",
-				"POST   /api/v1/tasks",
-				"PUT    /api/v1/tasks/:id",
-				"DELETE /api/v1/tasks/:id",
-			},
 		})
 	})
 
