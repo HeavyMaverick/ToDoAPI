@@ -12,6 +12,10 @@ import (
 
 var taskService service.TaskService
 
+func SetTaskService(ts service.TaskService) {
+	taskService = ts
+}
+
 // var (
 // 	ErrInvalidId = errors.New("Invalid task ID").Error()
 // 	ErrNotFound  = errors.New("Task not found").Error()
@@ -98,6 +102,10 @@ func UpdateTask(ctx *gin.Context) {
 	ctx.JSON(http.StatusOK, task)
 }
 
-func SetTaskService(ts service.TaskService) {
-	taskService = ts
+func TestpageGET(ctx *gin.Context) {
+	tasks, err := taskService.GetAllTasks()
+	if err != nil {
+		ctx.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
+	}
+	ctx.HTML(http.StatusOK, "testpage.tmpl", gin.H{"allTasks": tasks})
 }

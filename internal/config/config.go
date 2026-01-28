@@ -1,6 +1,8 @@
 package config
 
-import "os"
+import (
+	"os"
+)
 
 type Config struct {
 	DBHost     string `mapstructure:"DB_HOST"`
@@ -36,7 +38,7 @@ type Config struct {
 
 func LoadConfig() Config {
 	return Config{
-		DBHost:     getEnv("DB_HOST", "db"),
+		DBHost:     getEnv("DB_HOST", "localhost"), // localhost -> db in docker
 		DBPort:     getEnv("DB_PORT", "5432"),
 		DBUser:     getEnv("DB_USER", "postgres"),
 		DBPassword: getEnv("DB_PASSWORD", "root"),
@@ -46,6 +48,7 @@ func LoadConfig() Config {
 }
 
 func getEnv(key, defaultValue string) string {
+	//unefficient
 	if value, exists := os.LookupEnv(key); exists {
 		return value
 	}

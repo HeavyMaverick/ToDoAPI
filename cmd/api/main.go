@@ -20,10 +20,13 @@ func main() {
 	// if err != nil {
 	// 	log.Fatal("Error loading config:", err)
 	// }
+
+	//Подгружаем конфиг
 	log.Println("Loading configuration from environment variables")
 	cfg := config.LoadConfig()
 	log.Printf("Config loaded: DB=%s:%s", cfg.DBHost, cfg.DBPort)
 
+	//Коннектимся к базе данных
 	log.Println("Trying connect to db")
 	db, err := database.ConnectDB(&cfg)
 	if err != nil {
@@ -31,6 +34,7 @@ func main() {
 	}
 	log.Println("DB connected")
 
+	//Мигрируем
 	log.Println("Trying to migrate db")
 	err = database.AutoMigrate(db)
 	if err != nil {
@@ -39,6 +43,7 @@ func main() {
 	log.Println("Migration completed")
 
 	rep := repository.NewPostgresTaskRepository(db)
+	// для хранения в памяти
 	// rep := repository.NewInMemoryTaskRepository()
 	taskService := service.NewTaskService(rep)
 	h.SetTaskService(taskService)
@@ -46,6 +51,10 @@ func main() {
 	r := gin.Default()
 	r.Use(gin.Logger())
 	r.Use(gin.Recovery())
+
+	//подгружаем html/css
+	r.LoadHTMLGlob("/")
+	r.Static("/static", "./")
 
 	r.GET("/health", func(ctx *gin.Context) {
 		ctx.JSON(http.StatusOK, gin.H{"status": "ok"})
@@ -66,6 +75,9 @@ func main() {
 			},
 		})
 	})
+
+	//html test controller
+	r.GET("/testpage", h.TestpageGET)
 
 	{
 		v1 := r.Group("/api/v1")
