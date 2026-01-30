@@ -30,7 +30,7 @@ type Config struct {
 // 	}
 // 	err = viper.Unmarshal(&config)
 // 	if err != nil {
-// 		log.Println("Error unmarshaling config:", err)
+// 		log.Println("Error unmarshalling config:", err)
 // 		return
 // 	}
 // 	return
@@ -48,7 +48,7 @@ func LoadConfig() Config {
 }
 
 func getEnv(key, defaultValue string) string {
-	//unefficient
+	//inefficient
 	if value, exists := os.LookupEnv(key); exists {
 		return value
 	}

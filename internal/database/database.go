@@ -42,10 +42,13 @@ func ConnectDB(cfg *config.Config) (*gorm.DB, error) {
 	sqlDB.SetMaxIdleConns(10)
 	sqlDB.SetMaxOpenConns(100)
 	sqlDB.SetConnMaxLifetime(time.Hour)
-	log.Println("Connected to PostgreSQL database")
+	log.Println("Connected to PostgresSQL database")
 	return db, nil
 }
 
 func AutoMigrate(db *gorm.DB) error {
-	return db.AutoMigrate(&model.Task{})
+	return db.AutoMigrate(
+		&model.Task{},
+		&model.User{},
+	)
 }

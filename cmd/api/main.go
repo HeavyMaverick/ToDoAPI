@@ -37,12 +37,12 @@ func main() {
 	log.Println("DB connected")
 
 	//Мигрируем
-	// log.Println("Trying to migrate db")
-	// err = database.AutoMigrate(db)
-	// if err != nil {
-	// 	log.Fatal("Migration failed:", err)
-	// }
-	// log.Println("Migration completed")
+	log.Println("Trying to migrate db")
+	err = database.AutoMigrate(db)
+	if err != nil {
+		log.Fatal("Migration failed:", err)
+	}
+	log.Println("Migration completed")
 
 	rep := repository.NewPostgresTaskRepository(db)
 	// для хранения в памяти
