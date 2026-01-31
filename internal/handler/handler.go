@@ -44,11 +44,13 @@ func CreateTask(ctx *gin.Context) {
 			service.ErrEmptyTitle,
 			service.ErrInvalidUserID,
 			service.ErrTitleTooLong,
-			service.ErrTitleTooShort:
+			service.ErrTitleTooShort,
+			service.ErrUserNotFound:
 			ctx.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
 		default:
 			ctx.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
 		}
+		return
 	}
 	ctx.JSON(http.StatusCreated, task)
 }
@@ -107,7 +109,8 @@ func UpdateTask(ctx *gin.Context) {
 			service.ErrEmptyTitle,
 			service.ErrInvalidUserID,
 			service.ErrTitleTooLong,
-			service.ErrTitleTooShort:
+			service.ErrTitleTooShort,
+			service.ErrUserNotFound:
 			ctx.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
 		case repository.ErrNotFound:
 			ctx.JSON(http.StatusNotFound, gin.H{"error": "Task not found"})

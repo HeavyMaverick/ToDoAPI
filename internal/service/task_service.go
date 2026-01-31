@@ -15,7 +15,8 @@ type TaskService interface {
 }
 
 type taskService struct {
-	rep repository.TaskRepository
+	rep      repository.TaskRepository
+	userRepo repository.UserRepository
 }
 
 var (
@@ -24,6 +25,7 @@ var (
 	ErrTitleTooShort      = errors.New("title too short (min 1 char)")
 	ErrDescriptionTooLong = errors.New("description too long")
 	ErrInvalidUserID      = errors.New("invalid user id")
+	ErrUserNotFound       = errors.New("user not found")
 )
 
 const (
@@ -60,8 +62,11 @@ func (s *taskService) UpdateTask(id int, task *model.Task) error {
 	return s.rep.Update(id, task)
 }
 
-func NewTaskService(repo repository.TaskRepository) TaskService {
-	return &taskService{rep: repo}
+func NewTaskService(taskRepo repository.TaskRepository, userRepo repository.UserRepository) TaskService {
+	return &taskService{
+		rep:      taskRepo,
+		userRepo: userRepo,
+	}
 }
 
 func (s *taskService) validateTask(task *model.Task) error {
@@ -79,6 +84,15 @@ func (s *taskService) validateTask(task *model.Task) error {
 	}
 	if task.UserID <= 0 {
 		return ErrInvalidUserID
+	}
+	if s.userRepo != nil {
+		exists, err := s.userRepo.Exists(task.UserID)
+		if err != nil {
+			return err
+		}
+		if !exists {
+			return ErrUserNotFound
+		}
 	}
 	return nil
 }

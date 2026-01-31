@@ -21,7 +21,10 @@ WORKDIR /app
 
 # Копируем из builder собранный бинарник
 COPY --from=builder /app/todoapp .
-#COPY .env .
+
+# Копируем папки templates и static
+COPY --from=builder /app/templates ./templates
+COPY --from=builder /app/static ./static
 
 # Порт, который слушает API
 EXPOSE 8080

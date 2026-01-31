@@ -45,9 +45,10 @@ func main() {
 	log.Println("Migration completed")
 
 	rep := repository.NewPostgresTaskRepository(db)
+	userRepo := repository.NewPostgresUserRepository(db)
 	// для хранения в памяти
 	// rep := repository.NewInMemoryTaskRepository()
-	taskService := service.NewTaskService(rep)
+	taskService := service.NewTaskService(rep, userRepo)
 	h.SetTaskService(taskService)
 
 	r := gin.Default()
