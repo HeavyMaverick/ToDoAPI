@@ -14,21 +14,28 @@ type TaskService interface {
 	DeleteTask(id int) error
 }
 
-var (
-	ErrEmptyTitle   = errors.New("Title cannot be empty")
-	ErrTitleTooLong = errors.New("Title too long (max 100 chars)")
-)
-
 type taskService struct {
 	rep repository.TaskRepository
 }
 
+var (
+	ErrEmptyTitle         = errors.New("title cannot be empty")
+	ErrTitleTooLong       = errors.New("title too long (max 100 chars)")
+	ErrTitleTooShort      = errors.New("title too short (min 1 char)")
+	ErrDescriptionTooLong = errors.New("description too long")
+	ErrInvalidUserID      = errors.New("invalid user id")
+)
+
+const (
+	MaxTitleLength       = 60
+	MaxDescriptionLength = 1000
+	MinTitleLength       = 1
+)
+
 func (s *taskService) CreateTask(task *model.Task) error {
-	if task.Title == "" {
-		return ErrEmptyTitle
-	}
-	if len(task.Title) > 100 {
-		return ErrTitleTooLong
+	err := s.validateTask(task)
+	if err != nil {
+		return err
 	}
 	return s.rep.Create(task)
 }
@@ -46,15 +53,32 @@ func (s *taskService) GetTask(id int) (*model.Task, error) {
 }
 
 func (s *taskService) UpdateTask(id int, task *model.Task) error {
-	if task.Title == "" {
-		return ErrEmptyTitle
-	}
-	if len(task.Title) > 100 {
-		return ErrTitleTooLong
+	err := s.validateTask(task)
+	if err != nil {
+		return err
 	}
 	return s.rep.Update(id, task)
 }
 
 func NewTaskService(repo repository.TaskRepository) TaskService {
 	return &taskService{rep: repo}
+}
+
+func (s *taskService) validateTask(task *model.Task) error {
+	if task.Title == "" {
+		return ErrEmptyTitle
+	}
+	if len(task.Title) > MaxTitleLength {
+		return ErrTitleTooLong
+	}
+	if len(task.Title) < MinTitleLength {
+		return ErrTitleTooShort
+	}
+	if len(task.Description) > MaxDescriptionLength {
+		return ErrDescriptionTooLong
+	}
+	if task.UserID <= 0 {
+		return ErrInvalidUserID
+	}
+	return nil
 }

@@ -14,5 +14,5 @@ type Task struct {
 	CreatedAt   time.Time      `json:"created_at" gorm:"autoCreateTime"`
 	UpdatedAt   time.Time      `json:"updated_at" gorm:"autoUpdateTime"`
 	DeletedAt   gorm.DeletedAt `json:"-" gorm:"index"`
-	UserId      int            `json:"user_id" gorm:"not null"`
+	UserID      int            `json:"user_id" gorm:"not null"`
 }
