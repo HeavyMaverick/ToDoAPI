@@ -5,6 +5,7 @@ import (
 	"strconv"
 
 	"ToDoApi/internal/model"
+	"ToDoApi/internal/repository"
 	"ToDoApi/internal/service"
 
 	"github.com/gin-gonic/gin"
@@ -36,9 +37,18 @@ func CreateTask(ctx *gin.Context) {
 		ctx.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
 		return
 	}
-	if err := taskService.CreateTask(&task); err != nil {
-		ctx.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
-		return
+	err := taskService.CreateTask(&task)
+	if err != nil {
+		switch err {
+		case service.ErrDescriptionTooLong,
+			service.ErrEmptyTitle,
+			service.ErrInvalidUserID,
+			service.ErrTitleTooLong,
+			service.ErrTitleTooShort:
+			ctx.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
+		default:
+			ctx.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
+		}
 	}
 	ctx.JSON(http.StatusCreated, task)
 }
@@ -90,12 +100,19 @@ func UpdateTask(ctx *gin.Context) {
 		ctx.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
 		return
 	}
-	if err := taskService.UpdateTask(id, &task); err != nil {
-		if err == service.ErrEmptyTitle || err == service.ErrTitleTooLong {
+	err = taskService.UpdateTask(id, &task)
+	if err != nil {
+		switch err {
+		case service.ErrDescriptionTooLong,
+			service.ErrEmptyTitle,
+			service.ErrInvalidUserID,
+			service.ErrTitleTooLong,
+			service.ErrTitleTooShort:
 			ctx.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
-		} else {
-			// ctx.JSON(http.StatusNotFound, gin.H{"error": ErrNotFound})
+		case repository.ErrNotFound:
 			ctx.JSON(http.StatusNotFound, gin.H{"error": "Task not found"})
+		default:
+			ctx.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
 		}
 		return
 	}
