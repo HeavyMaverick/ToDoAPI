@@ -4,6 +4,7 @@ import (
 	"ToDoApi/internal/model"
 	"errors"
 
+	"golang.org/x/crypto/bcrypt"
 	"gorm.io/gorm"
 )
 
@@ -47,7 +48,7 @@ func (r *PostgresUserRepository) GetById(id int) (*model.User, error) {
 
 func (r *PostgresUserRepository) GetByUsername(username string) (*model.User, error) {
 	var user model.User
-	result := r.db.First(&user, username)
+	result := r.db.Where("username = ?", username).First(&user)
 	if result.Error != nil {
 		if errors.Is(result.Error, gorm.ErrRecordNotFound) {
 			return nil, ErrUserNotFound
@@ -67,6 +68,36 @@ func (r *PostgresUserRepository) Exists(id int) (bool, error) {
 }
 
 func (r *PostgresUserRepository) Create(username, pass, email string) (*model.User, error) {
-	var user model.User
-	return &user, nil
+	hashedPassword, err := bcrypt.GenerateFromPassword([]byte(pass), bcrypt.DefaultCost)
+	if err != nil {
+		return nil, err
+	}
+	var user model.User = model.User{
+		Username:     username,
+		Email:        email,
+		PasswordHash: string(hashedPassword),
+	}
+	result := r.db.Create(&user)
+	if result.Error != nil {
+		return nil, result.Error
+	}
+	return &user, result.Error
 }
+
+func (r *PostgresUserRepository) DeleteUserByUsername(username string) error {
+	result := r.db.Where("username=?", username).Delete(&model.User{})
+	if result.RowsAffected == 0 {
+		return ErrUserNotFound
+	}
+	return result.Error
+}
+
+func (r *PostgresUserRepository) DeleteUserById(id int) error {
+	result := r.db.Where("id=?", id).Delete(&model.User{})
+	if result.RowsAffected == 0 {
+		return ErrUserNotFound
+	}
+	return result.Error
+}
+
+func (r *PostgresUserRepository) UpdateUser()

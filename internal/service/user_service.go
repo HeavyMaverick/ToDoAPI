@@ -3,6 +3,8 @@ package service
 import (
 	"ToDoApi/internal/model"
 	"ToDoApi/internal/repository"
+
+	"golang.org/x/crypto/bcrypt"
 )
 
 type UserService interface {
@@ -18,6 +20,10 @@ type UserService interface {
 type userService struct {
 	userRepo repository.UserRepository
 }
+
+// func NewUserService(userRepo repository.UserRepository) UserService {
+// 	return &userService{userRepo: userRepo}
+// }
 
 func (s *userService) GetAllUsers() ([]model.User, error) {
 	return s.userRepo.GetAll()
@@ -43,4 +49,20 @@ func (s *userService) DeleteUserWithUsername(username string) error {
 	return s.userRepo.DeleteUserByUsername(username)
 }
 
-func (s *userService) UpdateUser(id int, username, pass string) (*model.User, error)
+func (s *userService) UpdateUser(id int, username, pass string) (*model.User, error) {
+	user, err := s.userRepo.GetById(id)
+	if err != nil {
+		return nil, err
+	}
+	if username != "" {
+		user.Username = username
+	}
+	if pass != "" {
+		hashedPassword, err := bcrypt.GenerateFromPassword([]byte(pass), bcrypt.DefaultCost)
+		if err != nil {
+			return nil, err
+		}
+		user.PasswordHash = string(hashedPassword)
+	}
+	return user, nil
+}
