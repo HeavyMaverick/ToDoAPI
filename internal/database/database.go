@@ -53,9 +53,9 @@ func AutoMigrate(db *gorm.DB) error {
 	var user model.User
 	if err := db.First(&user).Error; err != nil {
 		user = model.User{
-			Username: "admin",
-			Email:    "admin@example.com",
-			Password: "admin123",
+			Username:     "admin",
+			Email:        "admin@example.com",
+			PasswordHash: "admin123",
 		}
 		if err := db.Create(&user).Error; err != nil {
 			return fmt.Errorf("failed to create default user: %w", err)
