@@ -12,9 +12,13 @@ import (
 )
 
 var taskService service.TaskService
+var userService service.UserService
 
 func SetTaskService(ts service.TaskService) {
 	taskService = ts
+}
+func SetUserService(us service.UserService) {
+	userService = us
 }
 
 // var (

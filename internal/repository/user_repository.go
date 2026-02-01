@@ -16,6 +16,7 @@ type UserRepository interface {
 	GetByUsername(username string) (*model.User, error)
 	Exists(id int) (bool, error)
 	Create(username, pass, email string) (*model.User, error)
+	UpdateUser(id int, updates map[string]interface{}) error
 	DeleteUserByUsername(username string) error
 	DeleteUserById(id int) error
 }
@@ -81,7 +82,7 @@ func (r *PostgresUserRepository) Create(username, pass, email string) (*model.Us
 	if result.Error != nil {
 		return nil, result.Error
 	}
-	return &user, result.Error
+	return &user, nil
 }
 
 func (r *PostgresUserRepository) DeleteUserByUsername(username string) error {
@@ -100,4 +101,16 @@ func (r *PostgresUserRepository) DeleteUserById(id int) error {
 	return result.Error
 }
 
-func (r *PostgresUserRepository) UpdateUser()
+func (r *PostgresUserRepository) UpdateUser(id int, updates map[string]interface{}) error {
+	if len(updates) == 0 {
+		return nil
+	}
+	result := r.db.Model(&model.User{}).Where("id = ?", id).Updates(updates)
+	if result.Error != nil {
+		return result.Error
+	}
+	if result.RowsAffected == 0 {
+		return ErrUserNotFound
+	}
+	return nil
+}

@@ -10,20 +10,20 @@ import (
 type UserService interface {
 	GetAllUsers() ([]model.User, error)
 	GetUserWithId(id int) (*model.User, error)
-	GetUserWithUsername(username string) *model.User
+	GetUserWithUsername(username string) (*model.User, error)
 	CreateUser(username, pass, email string) (*model.User, error)
 	DeleteUserWithId(id int) error
 	DeleteUserWithUsername(username string) error
-	UpdateUser(id int, username, pass string) (*model.User, error)
+	UpdateUser(id int, username, pass, email string) (*model.User, error)
 }
 
 type userService struct {
 	userRepo repository.UserRepository
 }
 
-// func NewUserService(userRepo repository.UserRepository) UserService {
-// 	return &userService{userRepo: userRepo}
-// }
+func NewUserService(userRepo repository.UserRepository) UserService {
+	return &userService{userRepo: userRepo}
+}
 
 func (s *userService) GetAllUsers() ([]model.User, error) {
 	return s.userRepo.GetAll()
@@ -49,20 +49,31 @@ func (s *userService) DeleteUserWithUsername(username string) error {
 	return s.userRepo.DeleteUserByUsername(username)
 }
 
-func (s *userService) UpdateUser(id int, username, pass string) (*model.User, error) {
-	user, err := s.userRepo.GetById(id)
-	if err != nil {
-		return nil, err
-	}
+func (s *userService) UpdateUser(id int, username, pass, email string) (*model.User, error) {
+	updates := make(map[string]interface{})
+
 	if username != "" {
-		user.Username = username
+		updates["username"] = username
+	}
+	if email != "" {
+		updates["email"] = email
 	}
 	if pass != "" {
 		hashedPassword, err := bcrypt.GenerateFromPassword([]byte(pass), bcrypt.DefaultCost)
 		if err != nil {
 			return nil, err
 		}
-		user.PasswordHash = string(hashedPassword)
+		updates["password_hash"] = string(hashedPassword)
 	}
-	return user, nil
+
+	if len(updates) == 0 {
+		return s.userRepo.GetById(id)
+	}
+
+	err := s.userRepo.UpdateUser(id, updates)
+	if err != nil {
+		return nil, err
+	}
+
+	return s.userRepo.GetById(id)
 }
