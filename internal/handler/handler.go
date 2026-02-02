@@ -4,6 +4,7 @@ import (
 	"net/http"
 	"strconv"
 
+	"ToDoApi/internal/dto"
 	"ToDoApi/internal/model"
 	"ToDoApi/internal/repository"
 	"ToDoApi/internal/service"
@@ -36,12 +37,18 @@ func GetTasks(ctx *gin.Context) {
 }
 
 func CreateTask(ctx *gin.Context) {
-	var task model.Task
-	if err := ctx.ShouldBindJSON(&task); err != nil {
+	var req dto.CreateTaskRequest
+	err := ctx.BindJSON(&req)
+	if err != nil {
 		ctx.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
-		return
 	}
-	err := taskService.CreateTask(&task)
+	task := model.Task{
+		Title:       req.Title,
+		Description: req.Description,
+		UserID:      req.UserID,
+		Completed:   false,
+	}
+	err = taskService.CreateTask(&task)
 	if err != nil {
 		switch err {
 		case service.ErrDescriptionTooLong,
@@ -94,14 +101,24 @@ func DeleteTask(ctx *gin.Context) {
 }
 
 func UpdateTask(ctx *gin.Context) {
+	var req dto.UpdateTaskRequest
+	err := ctx.BindJSON(&req)
+	if err != nil {
+		ctx.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
+	}
+	task := model.Task{
+		Title:       req.Title,
+		Description: req.Description,
+		UserID:      req.UserID,
+		Completed:   req.Completed,
+	}
 	param, _ := ctx.Params.Get("id")
 	id, err := strconv.Atoi(param)
 	if err != nil {
-		// ctx.JSON(http.StatusBadRequest, gin.H{"error": ErrInvalidId})
 		ctx.JSON(http.StatusBadRequest, gin.H{"error": "Invalid task ID"})
 		return
 	}
-	var task model.Task
+
 	if err := ctx.ShouldBindJSON(&task); err != nil {
 		ctx.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
 		return
