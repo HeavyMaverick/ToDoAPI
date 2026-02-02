@@ -8,13 +8,19 @@ import (
 	"gorm.io/gorm"
 )
 
-var ErrUserNotFound = errors.New("user not found")
+var (
+	ErrUserNotFound              = errors.New("user not found")
+	ErrUsernameUserAlreadyExists = errors.New("user with this username already exists")
+	ErrEmailUserAlreadyExists    = errors.New("user with this email already exists")
+)
 
 type UserRepository interface {
 	GetAll() ([]model.User, error)
 	GetById(id int) (*model.User, error)
 	GetByUsername(username string) (*model.User, error)
 	Exists(id int) (bool, error)
+	ExistsByUsername(username string) (bool, error)
+	ExistsByEmail(email string) (bool, error)
 	Create(username, pass, email string) (*model.User, error)
 	UpdateUser(id int, updates map[string]interface{}) error
 	DeleteUserByUsername(username string) error
@@ -68,12 +74,45 @@ func (r *PostgresUserRepository) Exists(id int) (bool, error) {
 	return count > 0, nil
 }
 
+func (r *PostgresUserRepository) ExistsByUsername(username string) (bool, error) {
+	var count int64
+	err := r.db.Model(&model.User{}).Where("username = ?", username).Count(&count).Error
+	if err != nil {
+		return false, err
+	}
+	return count > 0, nil
+}
+
+func (r *PostgresUserRepository) ExistsByEmail(email string) (bool, error) {
+	var count int64
+	err := r.db.Model(&model.User{}).Where("email = ?", email).Count(&count).Error
+	if err != nil {
+		return false, err
+	}
+	return count > 0, nil
+}
+
 func (r *PostgresUserRepository) Create(username, pass, email string) (*model.User, error) {
+	var user model.User
+	exists, err := r.ExistsByUsername(username)
+	if err != nil {
+		return nil, err
+	}
+	if exists {
+		return nil, ErrUsernameUserAlreadyExists
+	}
+	emailExists, err := r.ExistsByEmail(email)
+	if err != nil {
+		return nil, err
+	}
+	if emailExists {
+		return nil, ErrEmailUserAlreadyExists
+	}
 	hashedPassword, err := bcrypt.GenerateFromPassword([]byte(pass), bcrypt.DefaultCost)
 	if err != nil {
 		return nil, err
 	}
-	var user model.User = model.User{
+	user = model.User{
 		Username:     username,
 		Email:        email,
 		PasswordHash: string(hashedPassword),

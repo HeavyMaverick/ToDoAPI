@@ -47,6 +47,7 @@ func (r *PostgresTaskRepository) Update(id int, task *model.Task) error {
 		"title":       task.Title,
 		"description": task.Description,
 		"completed":   task.Completed,
+		"user_id":     task.UserID,
 	}
 	result := r.db.Model(&model.Task{}).Where("id = ?", id).Updates(updates)
 	if result.Error != nil {
