@@ -5,21 +5,34 @@ import (
 	"strings"
 
 	"ToDoApi/internal/service"
+
+	"github.com/gin-gonic/gin"
 )
 
-func AuthMiddleware(h http.HandlerFunc, jwtService service.JwtService) http.HandlerFunc {
-	return func(w http.ResponseWriter, r *http.Request) {
-		authHeader := r.Header.Get("Authorization")
+func AuthMiddleware(h http.HandlerFunc, jwtService service.JwtService) gin.HandlerFunc {
+	return func(ctx *gin.Context) {
+		authHeader := ctx.GetHeader("Authorization")
 		if authHeader == "" {
-			http.Error(w, "Token is empty", http.StatusUnauthorized)
+			ctx.JSON(http.StatusUnauthorized, gin.H{"error": "authorization header required"})
+			ctx.Abort()
 			return
 		}
-		tokenString := strings.TrimPrefix(authHeader, "Bearer ")
-		token, err := jwtService.ValidateToken(tokenString)
-		if err != nil || !token.Valid {
-			http.Error(w, "invalid token", http.StatusUnauthorized)
+		parts := strings.Split(authHeader, " ")
+		if len(parts) != 2 || parts[0] != "Bearer" {
+			ctx.JSON(http.StatusUnauthorized, gin.H{"error": "invalid authorization format"})
+			ctx.Abort()
 			return
 		}
-
+		tokenString := parts[1]
+		claims, err := jwtService.ExtractClaims(tokenString)
+		if err != nil {
+			ctx.JSON(http.StatusUnauthorized, gin.H{"error": "invalid token", "details": err.Error()})
+			ctx.Abort()
+			return
+		}
+		ctx.Set("user_id", claims.UserId)
+		ctx.Set("username", claims.Username)
+		ctx.Set("email", claims.Email)
+		ctx.Next()
 	}
 }

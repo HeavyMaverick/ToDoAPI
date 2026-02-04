@@ -122,6 +122,8 @@ func main() {
 		})
 	})
 
+	publicRoutes := []string{"/auth/login", "/auth/register", "/health"}
+
 	//html test controller
 	r.GET("/testpage", h.TestpageGET)
 

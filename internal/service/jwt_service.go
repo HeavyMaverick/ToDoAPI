@@ -13,7 +13,7 @@ import (
 type JwtService interface {
 	GenerateToken(*model.User) (string, error)
 	ValidateToken(tokenString string) (*jwt.Token, error)
-	ExtractClaims(tokenString string) (*jwt.Claims, error)
+	ExtractClaims(tokenString string) (*Claims, error)
 	RefreshToken(tokenString string) (string, error)
 }
 
