@@ -3,6 +3,8 @@ package service
 import (
 	"ToDoApi/internal/model"
 	"errors"
+	"fmt"
+	"strings"
 	"time"
 
 	"github.com/golang-jwt/jwt/v5"
@@ -76,16 +78,53 @@ func (s *jwtService) GenerateToken(user *model.User) (string, error) {
 
 func (s *jwtService) ValidateToken(tokenString string) (*jwt.Token, error) {
 	token, err := jwt.Parse(tokenString, func(token *jwt.Token) (any, error) {
+		if _, ok := token.Method.(*jwt.SigningMethodHMAC); !ok {
+			return nil, fmt.Errorf("unexpected signing method: %v", token.Header["alg"])
+		}
 		return s.secretKey, nil
 	})
 	if err != nil || !token.Valid {
 		return nil, err
 	}
-	if token.Method.Alg() != jwt.SigningMethodHS256.Name {
-		return nil, errors.New("invalid signing method")
-	}
 	return token, nil
 }
 
-func (s *jwtService) ExtractClaims(tokenString string) (*jwt.Claims, error)
-func (s *jwtService) RefreshToken(tokenString string) (string, error)
+func (s *jwtService) ExtractClaims(tokenString string) (*Claims, error) {
+	token, err := s.ValidateToken(tokenString)
+	if err != nil {
+		return nil, err
+	}
+	if claims, ok := token.Claims.(jwt.MapClaims); ok {
+		userIDFloat, ok := claims["user_id"].(float64)
+		if !ok {
+			return nil, errors.New("invalid user_id in token")
+		}
+		return &Claims{
+			UserId:   int(userIDFloat),
+			Username: claims["username"].(string),
+			Email:    claims["email"].(string),
+		}, nil
+	}
+	return nil, errors.New("invalid token claims")
+}
+
+func (s *jwtService) RefreshToken(tokenString string) (string, error) {
+	token, err := jwt.ParseWithClaims(tokenString, &Claims{}, func(token *jwt.Token) (any, error) {
+		if _, ok := token.Method.(*jwt.SigningMethodHMAC); !ok {
+			return nil, fmt.Errorf("unexpected signing method: %v", token.Header["alg"])
+		}
+		return s.secretKey, nil
+	})
+	if err != nil {
+		if !strings.Contains(err.Error(), "token is expired") {
+			return "", err
+		}
+	}
+	if claims, ok := token.Claims.(*Claims); ok {
+		claims.ExpiresAt = jwt.NewNumericDate(time.Now().Add(s.tokenDuration))
+		claims.IssuedAt = jwt.NewNumericDate(time.Now())
+		newToken := jwt.NewWithClaims(jwt.SigningMethodHS256, claims)
+		return newToken.SignedString(s.secretKey)
+	}
+	return "", errors.New("invalid token claims")
+}
