@@ -50,7 +50,7 @@ func (s *userService) DeleteUserWithUsername(username string) error {
 }
 
 func (s *userService) UpdateUser(id int, username, pass, email string) (*model.User, error) {
-	updates := make(map[string]interface{})
+	updates := make(map[string]any)
 
 	if username != "" {
 		updates["username"] = username
