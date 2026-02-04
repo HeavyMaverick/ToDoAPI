@@ -22,9 +22,9 @@ type jwtService struct {
 }
 
 type JWTConfig struct {
-	secretKey     string
-	TokenDuration time.Duration
-	Issuer        string
+	SecretKey     string        `json:"sercet_key"`
+	TokenDuration time.Duration `json:"token_duration"`
+	Issuer        string        `json:"issuer"`
 }
 
 type Claims struct {
@@ -39,7 +39,7 @@ var (
 )
 
 func NewJwtService(config JWTConfig) (*jwtService, error) {
-	if config.secretKey == "" {
+	if config.SecretKey == "" {
 		panic("secretKey can't be empty")
 	}
 	if config.TokenDuration == 0 {
@@ -49,7 +49,7 @@ func NewJwtService(config JWTConfig) (*jwtService, error) {
 		config.Issuer = "todoapi"
 	}
 	return &jwtService{
-		secretKey:     []byte(config.secretKey),
+		secretKey:     []byte(config.SecretKey),
 		tokenDuration: config.TokenDuration,
 		issuer:        config.Issuer,
 	}, nil
@@ -73,6 +73,19 @@ func (s *jwtService) GenerateToken(user *model.User) (string, error) {
 	token := jwt.NewWithClaims(jwt.SigningMethodHS256, claims)
 	return token.SignedString(s.secretKey)
 }
-func (s *jwtService) ValidateToken(tokenString string) (*jwt.Token, error)
+
+func (s *jwtService) ValidateToken(tokenString string) (*jwt.Token, error) {
+	token, err := jwt.Parse(tokenString, func(token *jwt.Token) (any, error) {
+		return s.secretKey, nil
+	})
+	if err != nil || !token.Valid {
+		return nil, err
+	}
+	if token.Method.Alg() != jwt.SigningMethodHS256.Name {
+		return nil, errors.New("invalid signing method")
+	}
+	return token, nil
+}
+
 func (s *jwtService) ExtractClaims(tokenString string) (*jwt.Claims, error)
 func (s *jwtService) RefreshToken(tokenString string) (string, error)
