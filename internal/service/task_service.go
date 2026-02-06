@@ -21,7 +21,7 @@ type taskService struct {
 
 var (
 	ErrEmptyTitle         = errors.New("title cannot be empty")
-	ErrTitleTooLong       = errors.New("title too long (max 100 chars)")
+	ErrTitleTooLong       = errors.New("title too long (max 60 chars)")
 	ErrTitleTooShort      = errors.New("title too short (min 1 char)")
 	ErrDescriptionTooLong = errors.New("description too long")
 	ErrInvalidUserID      = errors.New("invalid user id")

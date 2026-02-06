@@ -119,6 +119,8 @@ func (s *jwtService) RefreshToken(tokenString string) (string, error) {
 	if err != nil {
 		if !strings.Contains(err.Error(), "token is expired") {
 			return "", err
+		} else {
+			return "", err
 		}
 	}
 	if claims, ok := token.Claims.(*Claims); ok {

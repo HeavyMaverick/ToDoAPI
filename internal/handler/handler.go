@@ -76,13 +76,11 @@ func GetTask(ctx *gin.Context) {
 	param, _ := ctx.Params.Get("id")
 	id, err := strconv.Atoi(param)
 	if err != nil {
-		// ctx.JSON(http.StatusBadRequest, gin.H{"error": ErrInvalidId})
 		ctx.JSON(http.StatusBadRequest, gin.H{"error": "Invalid task ID"})
 		return
 	}
 	task, err := taskService.GetTask(id)
 	if err != nil {
-		// ctx.JSON(http.StatusNotFound, gin.H{"error": ErrNotFound})
 		ctx.JSON(http.StatusNotFound, gin.H{"error": "Task not found"})
 		return
 	}
@@ -93,14 +91,12 @@ func DeleteTask(ctx *gin.Context) {
 	param, _ := ctx.Params.Get("id")
 	id, err := strconv.Atoi(param)
 	if err != nil {
-		// ctx.JSON(http.StatusBadRequest, gin.H{"error": ErrInvalidId})
 		ctx.JSON(http.StatusBadRequest, gin.H{"error": "Invalid task ID"})
 		return
 	}
 	err = taskService.DeleteTask(id)
 	if err != nil {
-		// ctx.JSON(http.StatusNotFound, gin.H{"error 1": ErrNotFound})
-		ctx.JSON(http.StatusNotFound, gin.H{"error 1": "Task not found"})
+		ctx.JSON(http.StatusNotFound, gin.H{"error": "Task not found"})
 		return
 	}
 	ctx.JSON(http.StatusOK, gin.H{"message": "Task deleted successfully"})
@@ -117,9 +113,17 @@ func UpdateTask(ctx *gin.Context) {
 		ctx.JSON(http.StatusBadRequest, gin.H{"error": "Invalid task ID"})
 		return
 	}
+	existingTask, err := taskService.GetTask(id)
+	if err != nil {
+		ctx.JSON(http.StatusNotFound, gin.H{"error": "task not found"})
+	}
 	userId, err := middleware.GetIdFromContext(ctx)
 	if err != nil {
 		ctx.JSON(http.StatusBadRequest, gin.H{"error": "Authentication required"})
+		return
+	}
+	if existingTask.ID != userId {
+		ctx.JSON(http.StatusForbidden, gin.H{"error": "you can only update your tasks"})
 		return
 	}
 	task := model.Task{

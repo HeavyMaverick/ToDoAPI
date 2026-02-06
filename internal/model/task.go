@@ -8,7 +8,7 @@ import (
 
 type Task struct {
 	ID          int            `json:"id" gorm:"primary_key;autoIncrement"`
-	Title       string         `json:"title" gorm:"not null,size:255"`
+	Title       string         `json:"title" gorm:"not null;size:255"`
 	Description string         `json:"description" gorm:"type:text"`
 	Completed   bool           `json:"completed" gorm:"default:false"`
 	CreatedAt   time.Time      `json:"created_at" gorm:"autoCreateTime"`
