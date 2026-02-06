@@ -46,6 +46,7 @@ func CreateTask(ctx *gin.Context) {
 	var req dto.CreateTaskRequest
 	if err := ctx.ShouldBindJSON(&req); err != nil {
 		ctx.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
+		return
 	}
 	task := model.Task{
 		Title:       req.Title,
@@ -119,6 +120,7 @@ func UpdateTask(ctx *gin.Context) {
 	userId, err := middleware.GetIdFromContext(ctx)
 	if err != nil {
 		ctx.JSON(http.StatusBadRequest, gin.H{"error": "Authentication required"})
+		return
 	}
 	task := model.Task{
 		Title:       req.Title,

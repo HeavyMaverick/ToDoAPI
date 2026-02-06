@@ -37,12 +37,13 @@ type Claims struct {
 }
 
 var (
-	ErrUserNil = errors.New("user can't be nil")
+	ErrUserNil        = errors.New("user can't be nil")
+	ErrEmptySecretKey = errors.New("secretKey can't be empty")
 )
 
 func NewJwtService(config JWTConfig) (*jwtService, error) {
 	if config.SecretKey == "" {
-		panic("secretKey can't be empty")
+		return nil, ErrEmptySecretKey
 	}
 	if config.TokenDuration == 0 {
 		config.TokenDuration = 24 * time.Hour
