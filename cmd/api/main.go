@@ -5,10 +5,12 @@ import (
 	"net/http"
 	"os"
 	"path/filepath"
+	"time"
 
 	"ToDoApi/internal/config"
 	"ToDoApi/internal/database"
 	h "ToDoApi/internal/handler"
+	"ToDoApi/internal/middleware"
 	"ToDoApi/internal/repository"
 	"ToDoApi/internal/service"
 
@@ -44,10 +46,19 @@ func main() {
 	}
 	log.Println("Migration completed")
 
+	jwtConfig := service.JWTConfig{
+		SecretKey:     os.Getenv("JWT_SECRET"),
+		TokenDuration: 24 * time.Hour,
+		Issuer:        "todoapi",
+	}
+
 	taskRepo := repository.NewPostgresTaskRepository(db)
 	userRepo := repository.NewPostgresUserRepository(db)
-	// для хранения в памяти
-	// rep := repository.NewInMemoryTaskRepository()
+	jwtService, err := service.NewJwtService(jwtConfig)
+	if err != nil {
+		log.Println("Failed to create jwtService")
+		log.Fatal(err.Error())
+	}
 	taskService := service.NewTaskService(taskRepo, userRepo)
 	userService := service.NewUserService(userRepo)
 	h.SetTaskService(taskService)
@@ -99,22 +110,6 @@ func main() {
 		ctx.JSON(http.StatusOK, gin.H{"status": "ok"})
 	})
 
-	// r.GET("/", func(ctx *gin.Context) {
-	// 	ctx.JSON(http.StatusOK, gin.H{
-	// 		"service": "ToDo API",
-	// 		"version": "1.0.0",
-	// 		"docs":    "https://github.com/heavymaverick/ToDoApi",
-	// 		"endpoints": []string{
-	// 			"GET    /health",
-	// 			"GET    /api/v1/tasks",
-	// 			"GET    /api/v1/tasks/:id",
-	// 			"POST   /api/v1/tasks",
-	// 			"PUT    /api/v1/tasks/:id",
-	// 			"DELETE /api/v1/tasks/:id",
-	// 		},
-	// 	})
-	// })
-
 	r.GET("/", func(ctx *gin.Context) {
 		ctx.HTML(http.StatusOK, "index.html", gin.H{
 			"title":   "ToDoApi",
@@ -122,18 +117,20 @@ func main() {
 		})
 	})
 
-	publicRoutes := []string{"/auth/login", "/auth/register", "/health"}
-
-	//html test controller
-	r.GET("/testpage", h.TestpageGET)
-
+	authGroup := r.Group("/api/v1")
+	authGroup.Use(middleware.AuthMiddleware(jwtService))
 	{
-		v1 := r.Group("/api/v1")
-		v1.GET("/tasks", h.GetTasks)
-		v1.GET("/tasks/:id", h.GetTask)
-		v1.POST("/tasks", h.CreateTask)
-		v1.PUT("/tasks/:id", h.UpdateTask)
-		v1.DELETE("/tasks/:id", h.DeleteTask)
+		authGroup.GET("/tasks", h.GetTasks)
+		authGroup.GET("/tasks/:id", h.GetTask)
+		authGroup.POST("/tasks", h.CreateTask)
+		authGroup.PUT("/tasks/:id", h.UpdateTask)
+		authGroup.DELETE("/tasks/:id", h.DeleteTask)
+	}
+
+	publicGroup := r.Group("/")
+	{
+		publicGroup.POST("/auth/register", h.Register)
+		publicGroup.POST("/auth/login", h.Login)
 	}
 
 	log.Println("Server starting on :8080")

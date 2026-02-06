@@ -5,6 +5,7 @@ import (
 	"strconv"
 
 	"ToDoApi/internal/dto"
+	"ToDoApi/internal/middleware"
 	"ToDoApi/internal/model"
 	"ToDoApi/internal/repository"
 	"ToDoApi/internal/service"
@@ -37,15 +38,19 @@ func GetTasks(ctx *gin.Context) {
 }
 
 func CreateTask(ctx *gin.Context) {
-	var req dto.CreateTaskRequest
-	err := ctx.BindJSON(&req)
+	userId, err := middleware.GetIdFromContext(ctx)
 	if err != nil {
+		ctx.JSON(http.StatusUnauthorized, gin.H{"error": "authentication required"})
+		return
+	}
+	var req dto.CreateTaskRequest
+	if err := ctx.ShouldBindJSON(&req); err != nil {
 		ctx.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
 	}
 	task := model.Task{
 		Title:       req.Title,
 		Description: req.Description,
-		UserID:      req.UserID,
+		UserID:      userId,
 		Completed:   false,
 	}
 	err = taskService.CreateTask(&task)

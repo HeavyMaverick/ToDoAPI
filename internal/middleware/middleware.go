@@ -9,7 +9,7 @@ import (
 	"github.com/gin-gonic/gin"
 )
 
-func AuthMiddleware(h http.HandlerFunc, jwtService service.JwtService) gin.HandlerFunc {
+func AuthMiddleware(jwtService service.JwtService) gin.HandlerFunc {
 	return func(ctx *gin.Context) {
 		authHeader := ctx.GetHeader("Authorization")
 		if authHeader == "" {
