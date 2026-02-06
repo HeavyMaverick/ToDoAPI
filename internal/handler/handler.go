@@ -107,15 +107,8 @@ func DeleteTask(ctx *gin.Context) {
 
 func UpdateTask(ctx *gin.Context) {
 	var req dto.UpdateTaskRequest
-	err := ctx.BindJSON(&req)
-	if err != nil {
+	if err := ctx.ShouldBindJSON(&req); err != nil {
 		ctx.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
-	}
-	task := model.Task{
-		Title:       req.Title,
-		Description: req.Description,
-		UserID:      req.UserID,
-		Completed:   req.Completed,
 	}
 	param, _ := ctx.Params.Get("id")
 	id, err := strconv.Atoi(param)
@@ -123,10 +116,15 @@ func UpdateTask(ctx *gin.Context) {
 		ctx.JSON(http.StatusBadRequest, gin.H{"error": "Invalid task ID"})
 		return
 	}
-
-	if err := ctx.ShouldBindJSON(&task); err != nil {
-		ctx.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
-		return
+	userId, err := middleware.GetIdFromContext(ctx)
+	if err != nil {
+		ctx.JSON(http.StatusBadRequest, gin.H{"error": "Authentication required"})
+	}
+	task := model.Task{
+		Title:       req.Title,
+		Description: req.Description,
+		UserID:      userId,
+		Completed:   req.Completed,
 	}
 	err = taskService.UpdateTask(id, &task)
 	if err != nil {
