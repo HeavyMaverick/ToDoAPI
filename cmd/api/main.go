@@ -102,6 +102,11 @@ func main() {
 
 	// Подгружаем HTML шаблоны
 	r.LoadHTMLGlob(filepath.Join(templatesPath, "*.html"))
+
+	//Проверяем наличие
+	files, _ := filepath.Glob(filepath.Join(templatesPath, "*.html"))
+	log.Printf("Found %d template files", len(files))
+
 	// Настраиваем статические файлы
 	r.Static("/static", staticPath)
 	r.StaticFile("/favicon.ico", filepath.Join(staticPath, "favicon.ico"))
@@ -109,7 +114,7 @@ func main() {
 	r.GET("/health", func(ctx *gin.Context) {
 		ctx.JSON(http.StatusOK, gin.H{"status": "ok"})
 	})
-
+	r.GET("/testpage", h.TestpageGET)
 	r.GET("/", func(ctx *gin.Context) {
 		ctx.HTML(http.StatusOK, "index.html", gin.H{
 			"title":   "ToDoApi",

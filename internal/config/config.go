@@ -48,7 +48,6 @@ func LoadConfig() Config {
 }
 
 func getEnv(key, defaultValue string) string {
-	//inefficient
 	if value, exists := os.LookupEnv(key); exists {
 		return value
 	}
